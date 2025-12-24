@@ -5,7 +5,8 @@ require('dotenv').config();        // for using .env file
 const express = require('express'); // express framework
 const { GoogleGenerativeAI } = require("@google/generative-ai"); // for chatbot
 const createGraph = require('ngraph.graph');  // graph or map use
-const path = require('ngraph.path');
+const ngraphPath = require('ngraph.path'); // Renamed from 'path' to avoid conflict with Node.js path module
+const path = require('path'); // Node.js path module for file serving
 
 const multer = require('multer');
 // FIX: Added 5MB limit to prevent RAM crash
@@ -31,6 +32,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'], // Allows sending JSON and Login Tokens
     credentials: true // Optional: allows cookies if you decide to use them later
 }));
+
+// 1. Serve static files (this allows your PWA files to be accessible)
+app.use(express.static(path.join(__dirname, '/')));
+
+// 2. Route for your PWA homepage
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // AI Initialization
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -323,7 +332,8 @@ app.post('/api/generate-safe-route', authenticateToken, async (req, res) => {
         });
 
         // 3. A* Pathfinding with Heuristic
-        const pathFinder = path.aStar(graph, {
+        // NOTE: Updated 'path' to 'ngraphPath' to fix variable collision
+        const pathFinder = ngraphPath.aStar(graph, {
             distance(from, to, link) { return link.data.weight; },
             heuristic(from, to) { return getDistance(from.data.lat, from.data.lon, to.data.lat, to.data.lon); }
         });
@@ -382,5 +392,7 @@ app.post('/api/panic/audio', authenticateToken, upload.single('audio'), async (r
     }
 });
 
-// Start Server
-app.listen(PORT, () => console.log(`Raksha API active on port ${PORT}`));
+// 3. Listen on the environment port
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
