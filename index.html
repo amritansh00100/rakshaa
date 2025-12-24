@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Raksha - Women Safety App</title>
+    
+    <meta name="theme-color" content="#110524">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Raksha">
+    <meta name="application-name" content="Raksha">
+
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUmFra3NoYSBXb21lbiBTYWZldHkiLCJzaG9ydF9uYW1lIjoiUmFra3NoYSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMTEwNTI0IiwidGhlbWVfY29sb3IiOiIjZGIyNzc3Iiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yMzQ1LzIzNDUzNTMucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9LHsic3JjIjoiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMjM0NS8yMzQ1MzUzLnBuZyIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        html {
+            background-color: #110524;
+        }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #110524;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(219, 39, 119, 0.25) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.3) 0%, transparent 40%),
+                linear-gradient(180deg, #1e0a3c 0%, #110524 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            color: #fdf4ff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            overscroll-behavior: none;
+        }
+        
+        /* Pulse Animations */
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .animate-heartbeat { animation: heartbeat 2s infinite; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        
+        @keyframes heartbeat {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+            15% { transform: scale(1.05); }
+            30% { transform: scale(1); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 25px rgba(236, 72, 153, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+        }
+
+        /* Modern Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-nav {
+            background: rgba(19, 5, 36, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .map-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(236, 72, 153, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(236, 72, 153, 0.1) 1px, transparent 1px);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #6366f1; border-radius: 20px; }
+        
+        .glass-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            border-color: #d946ef;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.15);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root" class="h-full w-full"></div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // A simple no-op service worker is enough to satisfy the PWA install criteria
+                const swCode = "self.addEventListener('fetch', (event) => { return; }); self.addEventListener('install', (e) => self.skipWaiting());";
+                const blob = new Blob([swCode], {type: 'application/javascript'});
+                const url = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(url)
+                    .then(reg => console.log('SW Registered'))
+                    .catch(e => console.log('SW Fail:', e));
+            });
+        }
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        /* --- AUDIO ENGINE --- */
+        class SirenManager {
+            constructor() { 
+                this.audioCtx = null; 
+                this.oscillator = null; 
+                this.gainNode = null; 
+                this.lfo = null; 
+                this.lfoGain = null; 
+            }
+            isActive() { return !!this.oscillator; }
+            start() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!this.audioCtx) this.audioCtx = new AudioContext();
+                    if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                    
+                    this.oscillator = this.audioCtx.createOscillator();
+                    this.oscillator.type = 'sawtooth'; 
+                    this.oscillator.frequency.value = 900;
+                    
+                    this.gainNode = this.audioCtx.createGain();
+                    this.gainNode.gain.value = 0.3;
+                    
+                    this.lfo = this.audioCtx.createOscillator();
+                    this.lfo.type = 'triangle';
+                    this.lfo.frequency.value = 3.5;
+                    
+                    this.lfoGain = this.audioCtx.createGain();
+                    this.lfoGain.gain.value = 600;
+                    
+                    this.lfo.connect(this.lfoGain);
+                    this.lfoGain.connect(this.oscillator.frequency);
+                    
+                    this.oscillator.connect(this.gainNode);
+                    this.gainNode.connect(this.audioCtx.destination);
+                    
+                    this.oscillator.start();
+                    this.lfo.start();
+                } catch (e) { console.error("Audio Context Error:", e); }
+            }
+            stop() {
+                try {
+                    if (this.oscillator) { this.oscillator.stop(); this.oscillator.disconnect(); this.oscillator = null; }
+                    if (this.lfo) { this.lfo.stop(); this.lfo.disconnect(); this.lfo = null; }
+                    if (this.gainNode) { this.gainNode.disconnect(); this.gainNode = null; }
+                } catch (e) { console.error("Error stopping audio:", e); }
+            }
+        }
+
+        /* --- ICONS --- */
+        const IconBase = ({ d, className = "", ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{d}</svg>
+        );
+
+        const Shield = (p) => <IconBase {...p} d={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />} />;
+        const Phone = (p) => <IconBase {...p} d={<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />} />;
+        const PhoneIncoming = (p) => <IconBase {...p} d={<><polyline points="16 2 16 8 22 8" /><line x1="23" y1="1" x2="16" y2="8" /><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></>} />;
+        const MapPin = (p) => <IconBase {...p} d={<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>} />;
+        const MessageSquare = (p) => <IconBase {...p} d={<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />} />;
+        const AlertTriangle = (p) => <IconBase {...p} d={<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4m0 4h.01" />} />;
+        const User = (p) => <IconBase {...p} d={<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>} />;
+        const Plus = (p) => <IconBase {...p} d={<><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>} />;
+        const Trash2 = (p) => <IconBase {...p} d={<><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></>} />;
+        const X = (p) => <IconBase {...p} d={<><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>} />;
+        const Send = (p) => <IconBase {...p} d={<><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></>} />;
+        const Loader2 = (p) => <IconBase {...p} className={`${p.className} animate-spin`} d={<path d="M21 12a9 9 0 1 1-6.219-8.56" />} />;
+        const CheckCircle = (p) => <IconBase {...p} d={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>} />;
+        const Siren = (p) => <IconBase {...p} d={<><path d="M7 12a5 5 0 0 1 5-5v0a5 5 0 0 1 5 5v6H7v-6Z"/><path d="M5 20a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2H5v-2Z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/><path d="M12 7a5 5 0 0 0-9.55 2.94"/></>} />;
+        const Download = (p) => <IconBase {...p} d={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></>} />;
+        const BookOpen = (p) => <IconBase {...p} d={<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />} />;
+        const Scale = (p) => <IconBase {...p} d={<><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></>} />;
+        const LogOut = (p) => <IconBase {...p} d={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>} />;
+        const ChevronDown = (p) => <IconBase {...p} d={<polyline points="6 9 12 15 18 9" />} />;
+        const ChevronUp = (p) => <IconBase {...p} d={<polyline points="18 15 12 9 6 15" />} />;
+        const ArrowLeft = (p) => <IconBase {...p} d={<><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></>} />;
+        const Megaphone = (p) => <IconBase {...p} d={<><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></>} />;
+        const Trophy = (p) => <IconBase {...p} d={<><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v8a5 5 0 0 1-10 0V4"/><path d="M5 9h2V5H5a2 2 0 0 0 0 4Z"/><path d="M17 9h2a2 2 0 0 0 0-4h-2v4Z"/></>} />;
+        const Mic = (p) => <IconBase {...p} d={<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />} />;
+        const Grid = (p) => <IconBase {...p} d={<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></>} />;
+        const Volume2 = (p) => <IconBase {...p} d={<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />} />;
+        const Battery = (p) => <IconBase {...p} d={<><rect x="1" y="6" width="18" height="12" rx="2" ry="2" /><line x1="23" y1="13" x2="23" y2="11" /></>} />;
+        const Wifi = (p) => <IconBase {...p} d={<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" />} />;
+        const MessageCircle = (p) => <IconBase {...p} d={<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />} />;
+        const Clock = (p) => <IconBase {...p} d={<><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>} />;
+
+        /* --- CONFIGURATION --- */
+        const API_BASE_URL = 'https://lotte-choco.onrender.com/';
+        const MOMS_VOICE_URL = 'https://raw.githubusercontent.com/XenO2H1/raksha.ai/main/audio.mp4'; 
+        const RINGTONE_URL = 'https://raw.githubusercontent.com/XenO2H1/raksha.ai/main/ringtone.mp3'; 
+
+        /* --- UI COMPONENTS --- */
+        const Button = ({ children, onClick, variant = 'primary', className = '', disabled = false, type = 'button' }) => {
+            const baseStyles = "px-6 py-4 rounded-full font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 shadow-xl tracking-wide";
+            const variants = {
+                primary: "bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-[0_4px_20px_rgba(192,38,211,0.4)] hover:shadow-[0_8px_30px_rgba(192,38,211,0.5)] border border-fuchsia-400/30",
+                secondary: "bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-md",
+                danger: "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-red-900/50 animate-pulse-slow border border-red-500/30",
+                ghost: "bg-transparent text-purple-200 hover:text-white hover:bg-white/5",
+                small: "px-3 py-1.5 text-xs bg-fuchsia-500/20 text-fuchsia-200 border border-fuchsia-500/30 rounded-lg"
+            };
+            return <button type={type} onClick={onClick} disabled={disabled} className={`${baseStyles} ${variants[variant]} ${className}`}>{children}</button>;
+        };
+
+        const Input = ({ label, name, type = "text", value, onChange, placeholder, required = false }) => (
+            <div className="mb-5">
+                {label && <label className="block text-xs font-bold text-fuchsia-200/80 mb-2 uppercase tracking-wider">{label}</label>}
+                <input name={name} type={type} value={value} onChange={onChange} placeholder={placeholder} required={required} className="w-full px-5 py-4 rounded-2xl glass-input placeholder-gray-400/70 outline-none" />
+            </div>
+        );
+
+        const Card = ({ children, className = '', onClick }) => <div onClick={onClick} className={`glass-panel rounded-[2rem] p-6 ${className}`}>{children}</div>;
+        
+        const QuickExitButton = () => {
+            const handleExit = () => window.location.replace("https://www.google.com");
+            return (
+                <button onClick={handleExit} className="fixed top-20 right-4 z-40 bg-gray-950/80 backdrop-blur-xl text-white p-3 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.8)] flex items-center gap-2 active:scale-95 border border-white/10 hover:border-red-500/50 hover:text-red-400 transition-all">
+                    <LogOut className="w-5 h-5" />
+                </button>
+            );
+        };
+
+        /* --- FIXED FAKE CALL OVERLAY COMPONENT --- */
+        function FakeCallOverlay({ onClose }) {
+            const [status, setStatus] = useState('ringing'); // 'ringing' | 'connected'
+            const [timer, setTimer] = useState(0);
+            const [speakerOn, setSpeakerOn] = useState(false);
+            const [currentTime, setCurrentTime] = useState('');
+            
+            // Audio Refs
+            const ringtoneRef = useRef(new Audio(RINGTONE_URL));
+            const voiceRef = useRef(new Audio(MOMS_VOICE_URL));
+
+            useEffect(() => {
+                const updateTime = () => {
+                    const now = new Date();
+                    setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                };
+                updateTime();
+                const timeInterval = setInterval(updateTime, 60000);
+                return () => clearInterval(timeInterval);
+            }, []);
+
+            // AUDIO LOGIC FIX
+            useEffect(() => {
+                const ringtone = ringtoneRef.current;
+                const voice = voiceRef.current;
+                
+                ringtone.loop = true;
+
+                if (status === 'ringing') {
+                    // Start Ringing
+                    voice.pause();
+                    voice.currentTime = 0;
+                    
+                    const playPromise = ringtone.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => console.log("Ringtone autoplay blocked (interaction needed):", error));
+                    }
+                    
+                    if (navigator.vibrate) navigator.vibrate([500, 1000, 500]);
+                    
+                } else if (status === 'connected') {
+                    // Stop Ringing, Start Voice
+                    ringtone.pause();
+                    ringtone.currentTime = 0;
+                    if (navigator.vibrate) navigator.vibrate(0);
+                    
+                    const playPromise = voice.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => console.log("Voice play error:", error));
+                    }
+                }
+
+                return () => {
+                    // Cleanup when unmounting or changing status
+                    ringtone.pause();
+                    if (status !== 'connected') {
+                        // Only pause voice if we are completely exiting or switching modes unusually
+                        voice.pause();
+                    }
+                };
+            }, [status]);
+
+            // Timer Logic
+            useEffect(() => {
+                let interval;
+                if (status === 'connected') {
+                    interval = setInterval(() => setTimer(t => t + 1), 1000);
+                }
+                return () => clearInterval(interval);
+            }, [status]);
+
+            // Final Cleanup on Unmount
+            useEffect(() => {
+                return () => {
+                    ringtoneRef.current.pause();
+                    voiceRef.current.pause();
+                    if (navigator.vibrate) navigator.vibrate(0);
+                };
+            }, []);
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            };
+
+            const acceptCall = () => setStatus('connected');
+            const endCall = () => onClose();
+
+            const toggleSpeaker = () => {
+                setSpeakerOn(!speakerOn);
+                voiceRef.current.volume = !speakerOn ? 1.0 : 0.2; 
+            };
+
+            return (
+                <div className="fixed inset-0 z-[100] bg-[#0f172a] flex flex-col items-center animate-in slide-in-from-bottom duration-300 font-sans">
+                    {/* Fake Status Bar */}
+                    <div className="w-full flex justify-between items-center px-6 py-2 text-white/80 text-xs font-medium bg-transparent absolute top-0 z-20">
+                        <span>{currentTime}</span>
+                        <div className="flex gap-1.5 items-center">
+                            <Wifi className="w-3.5 h-3.5" />
+                            <Battery className="w-3.5 h-3.5" />
+                        </div>
+                    </div>
+
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/0 to-slate-900/80 pointer-events-none"></div>
+                    
+                    {/* Call Info */}
+                    <div className="flex-1 flex flex-col items-center pt-32 w-full px-8 relative z-10">
+                        <div className="w-28 h-28 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-6 border-4 border-white/5 shadow-2xl relative">
+                             <User className="w-14 h-14 text-gray-400" />
+                        </div>
+                        <h2 className="text-3xl font-normal text-white mb-2 tracking-wide">Mom</h2>
+                        <p className="text-white/60 text-lg tracking-wide font-normal">
+                            {status === 'ringing' ? 'Mobile...' : formatTime(timer)}
+                        </p>
+                    </div>
+
+                    {status === 'ringing' ? (
+                        <div className="w-full relative z-10 pb-16">
+                            {/* Call Options */}
+                            <div className="flex justify-around px-12 mb-16 text-white/70">
+                                <button className="flex flex-col items-center gap-2 active:opacity-50 transition-opacity">
+                                    <Clock className="w-6 h-6" />
+                                    <span className="text-xs font-medium">Remind Me</span>
+                                </button>
+                                <button className="flex flex-col items-center gap-2 active:opacity-50 transition-opacity">
+                                    <MessageCircle className="w-6 h-6" />
+                                    <span className="text-xs font-medium">Message</span>
+                                </button>
+                            </div>
+
+                            <div className="w-full max-w-sm px-10 flex justify-between items-center mx-auto">
+                                {/* Decline */}
+                                <button onClick={endCall} className="flex flex-col items-center gap-3 group">
+                                    <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-[0_4px_20px_rgba(239,68,68,0.5)] transition-transform active:scale-90 active:bg-red-600">
+                                        <Phone className="w-8 h-8 text-white fill-current rotate-[135deg]" />
+                                    </div>
+                                    <span className="text-white font-medium text-sm tracking-wide opacity-90">Decline</span>
+                                </button>
+                                
+                                {/* Accept */}
+                                <button onClick={acceptCall} className="flex flex-col items-center gap-3 group">
+                                    <div className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_4px_20px_rgba(16,185,129,0.5)] transition-transform active:scale-90 animate-bounce active:bg-emerald-600">
+                                        <Phone className="w-8 h-8 text-white fill-current" />
+                                    </div>
+                                    <span className="text-white font-medium text-sm tracking-wide opacity-90">Accept</span>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="w-full max-w-sm px-8 space-y-16 relative z-10 pb-20">
+                            <div className="grid grid-cols-3 gap-y-8 gap-x-4">
+                                <div className="flex flex-col items-center gap-3 opacity-60 hover:opacity-100 transition-opacity"><div className="w-16 h-16 rounded-full border border-white/10 bg-white/5 flex items-center justify-center"><Mic className="w-7 h-7 text-white"/></div><span className="text-xs font-medium text-white">Mute</span></div>
+                                <div className="flex flex-col items-center gap-3 opacity-60 hover:opacity-100 transition-opacity"><div className="w-16 h-16 rounded-full border border-white/10 bg-white/5 flex items-center justify-center"><Grid className="w-7 h-7 text-white"/></div><span className="text-xs font-medium text-white">Keypad</span></div>
+                                <div className="flex flex-col items-center gap-3 opacity-100">
+                                    <button onClick={toggleSpeaker} className={`w-16 h-16 rounded-full border flex items-center justify-center transition-all ${speakerOn ? 'bg-white text-black border-white' : 'border-white/10 bg-white/5 text-white'}`}>
+                                        <Volume2 className="w-7 h-7"/>
+                                    </button>
+                                    <span className="text-xs font-medium text-white">Speaker</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-3 opacity-60 hover:opacity-100 transition-opacity"><div className="w-16 h-16 rounded-full border border-white/10 bg-white/5 flex items-center justify-center"><Plus className="w-7 h-7 text-white"/></div><span className="text-xs font-medium text-white">Add Call</span></div>
+                                <div className="flex flex-col items-center gap-3 opacity-60 hover:opacity-100 transition-opacity"><div className="w-16 h-16 rounded-full border border-white/10 bg-white/5 flex items-center justify-center"><MessageCircle className="w-7 h-7 text-white"/></div><span className="text-xs font-medium text-white">FaceTime</span></div>
+                                <div className="flex flex-col items-center gap-3 opacity-60 hover:opacity-100 transition-opacity"><div className="w-16 h-16 rounded-full border border-white/10 bg-white/5 flex items-center justify-center"><User className="w-7 h-7 text-white"/></div><span className="text-xs font-medium text-white">Contacts</span></div>
+                            </div>
+                            
+                            <div className="flex justify-center mt-8">
+                                <button onClick={endCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-[0_8px_40px_rgba(239,68,68,0.5)] hover:bg-red-600 transition-all active:scale-95">
+                                    <Phone className="w-8 h-8 text-white fill-current rotate-[135deg]" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        /* --- MAIN APP --- */
+        function RakshaApp() {
+            const [token, setToken] = useState(localStorage.getItem('raksha_token'));
+            const [user, setUser] = useState(JSON.parse(localStorage.getItem('raksha_user') || 'null'));
+            const [activeTab, setActiveTab] = useState('home');
+            const [demoMode, setDemoMode] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [toast, setToast] = useState(null);
+            const [installPrompt, setInstallPrompt] = useState(null);
+
+            useEffect(() => {
+                const handler = (e) => { 
+                    e.preventDefault(); 
+                    console.log("Install prompt triggered");
+                    setInstallPrompt(e); 
+                };
+                window.addEventListener('beforeinstallprompt', handler);
+                return () => window.removeEventListener('beforeinstallprompt', handler);
+            }, []);
+
+            const handleInstallClick = () => {
+                if (!installPrompt) return;
+                installPrompt.prompt();
+                installPrompt.userChoice.then((choiceResult) => { 
+                    if (choiceResult.outcome === 'accepted') setInstallPrompt(null); 
+                });
+            };
+
+            const showToast = (message, type = 'success') => {
+                setToast({ message, type });
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            const apiCall = async (endpoint, method = 'GET', body = null, isFormData = false) => {
+                setLoading(true);
+                // Demo mode logic preserved, but bypassed for real calls
+                if (demoMode && endpoint !== '/api/panic/audio') { 
+                    await new Promise(r => setTimeout(r, 600));
+                    setLoading(false);
+                    // ... (Original demo mock responses preserved)
+                    if (endpoint === '/api/contacts' && method === 'GET') return [{ contact_id: 1, contact_name: "Mom", contact_phone: "9876543210", relationship_type: "Parent" }, { contact_id: 2, contact_name: "Rahul (Brother)", contact_phone: "9123456789", relationship_type: "Sibling" }];
+                    if (endpoint === '/api/contacts' && method === 'POST') return { message: 'Contact Added (Demo)', contact_id: Math.random() };
+                    if (endpoint.includes('/api/contacts/') && method === 'DELETE') return { message: 'Deleted (Demo)' };
+                    if (endpoint === '/api/panic') return { message: "SOS Alert Triggered!", alert_id: 123, notified_contacts: 2 };
+                    if (endpoint === '/api/panic/resolve') return { message: "Alert Resolved" };
+                    if (endpoint === '/api/chat') return { answer: "This is a demo response from the Legal AI. In a real scenario, I would analyze your legal question using Gemini 1.5 Flash." };
+                    if (endpoint === '/api/generate-safe-route') return { path: [{lat: 28.6, lon: 77.2}, {lat: 28.7, lon: 77.3}] };
+                    return {}; 
+                }
+
+                try {
+                    const headers = {};
+                    if (!isFormData) headers['Content-Type'] = 'application/json';
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, { 
+                        method, 
+                        headers, 
+                        body: isFormData ? body : (body ? JSON.stringify(body) : null) 
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `Server Error: ${response.status}`);
+                    }
+
+                    const data = await response.json(); 
+                    setLoading(false); 
+                    return data;
+                } catch (error) {
+                    setLoading(false);
+                    if (endpoint !== '/api/panic/audio') showToast(error.message, 'error'); 
+                    throw error; 
+                }
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                try {
+                    const data = await apiCall('api/login', 'POST', { email: e.target.email.value, password: e.target.password.value });
+                    setToken(data.token); setUser({ email: e.target.email.value, id: data.user_id });
+                    localStorage.setItem('raksha_token', data.token); localStorage.setItem('raksha_user', JSON.stringify({ email: e.target.email.value, id: data.user_id }));
+                } catch (err) { }
+            };
+             
+            const handleRegister = async (e) => {
+                e.preventDefault();
+                const formData = {
+                    name: e.target.name.value,
+                    email: e.target.email.value,
+                    password: e.target.password.value,
+                    phone_number: "0000000000" 
+                };
+                try {
+                    const data = await apiCall('api/register', 'POST', formData);
+                    if (data.user_id) {
+                        showToast("Account Created! Please Login.");
+                        setActiveTab('login');
+                    }
+                } catch (err) { }
+            };
+
+            const logout = () => { setToken(null); setUser(null); localStorage.clear(); setActiveTab('home'); setDemoMode(false); };
+            
+            /* --- UPDATED SOS LOGIC (FIXED) --- */
+            const handlePanic = async () => {
+                if (!navigator.geolocation) {
+                    showToast("GPS not supported", "error");
+                    return;
+                }
+                
+                // Trigger Siren Globally
+                if(window.sirenManager) window.sirenManager.start();
+
+                setLoading(true);
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const { latitude, longitude } = position.coords;
+                        try {
+                            await apiCall('api/location', 'POST', { latitude, longitude });
+                            const data = await apiCall('api/panic', 'POST');
+                            
+                            if (data.alert_id) {
+                                showToast("🚨 SOS ALERT SENT!", "success");
+                            }
+                        } catch (err) {
+                            showToast("SOS Failed: " + err.message, "error");
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                    (error) => {
+                        setLoading(false);
+                        showToast("Please enable Location/GPS", "error");
+                    },
+                    { enableHighAccuracy: true }
+                );
+            };
+
+            if (!token) {
+                return (
+                    <div className="h-full flex items-center justify-center p-6 font-sans relative overflow-y-auto overscroll-none no-scrollbar">
+                        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-fuchsia-900/20 to-transparent pointer-events-none"></div>
+                        <Card className="w-full max-w-md relative z-10 !border-fuchsia-500/20 shadow-[0_0_80px_rgba(219,39,119,0.15)]">
+                            <div className="text-center mb-10">
+                                <div className="bg-gradient-to-tr from-fuchsia-600 to-purple-600 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-[0_10px_40px_rgba(219,39,119,0.5)] animate-float">
+                                    <Shield className="w-12 h-12 text-white" />
+                                </div>
+                                <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Raksha</h1>
+                                <p className="text-fuchsia-200/80 text-sm font-medium tracking-widest uppercase">Empowering Safety</p>
+                            </div>
+                            {activeTab === 'register' ? (
+                            <form onSubmit={handleRegister}>
+                                <Input name="name" label="Full Name" placeholder="Jane Doe" required />
+                                <Input name="email" label="Email" type="email" placeholder="jane@example.com" required />
+                                <Input name="password" label="Password" type="password" required />
+        
+                                <Button type="submit" variant="primary" className="w-full mb-6 py-4 text-lg">Create Account</Button>
+        
+                                <p className="text-center text-sm text-gray-400">
+                                    Already have an account? 
+                                    <button type="button" onClick={() => setActiveTab('login')} className="text-fuchsia-400 font-bold hover:text-fuchsia-300 ml-1 transition-colors">Login</button>
+                                </p>
+                            </form>
+                            ) : (
+                                <form onSubmit={handleLogin}>
+                                    <Input name="email" label="Email" type="email" placeholder="test@raksha.com" required />
+                                    <Input name="password" label="Password" type="password" placeholder="******" required />
+                                    <Button type="submit" variant="primary" className="w-full mb-6 py-4 text-lg">Login</Button>
+                                    <button type="button" onClick={() => { setDemoMode(true); setToken('demo'); setUser({email:'demo@raksha.com'}); }} className="w-full py-3 bg-white/5 text-fuchsia-200/50 text-sm font-semibold rounded-xl hover:bg-white/10 hover:text-white transition-all border border-transparent hover:border-white/10">Try Demo Mode</button>
+                                    <p className="text-center text-sm text-gray-400 mt-6">New here? <button type="button" onClick={() => setActiveTab('register')} className="text-fuchsia-400 font-bold hover:text-fuchsia-300 ml-1 transition-colors">Register</button></p>
+                                </form>
+                            )}
+                        </Card>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="h-full w-full font-sans relative overflow-y-auto overscroll-none no-scrollbar">
+                    {toast && <div className={`fixed top-6 right-6 left-6 z-50 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl text-white border animate-in slide-in-from-top duration-300 flex items-center justify-center font-bold tracking-wide ${toast.type === 'error' ? 'bg-red-500/90 border-red-400/30 shadow-red-900/50' : 'bg-emerald-500/90 border-emerald-400/30 shadow-emerald-900/50'}`}>{toast.message}</div>}
+                    
+                    <header className="fixed top-0 w-full z-40 h-20 flex items-center bg-gradient-to-b from-[#110524] via-[#110524]/90 to-transparent pointer-events-none">
+                        <div className="max-w-md mx-auto px-6 w-full flex justify-between items-center pointer-events-auto">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-gradient-to-tr from-fuchsia-600 to-purple-600 p-2 rounded-xl shadow-lg shadow-purple-900/50">
+                                    <Shield className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="font-extrabold text-xl text-white tracking-widest">RAKSHA</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                {installPrompt && <button onClick={handleInstallClick} className="flex items-center gap-1 bg-fuchsia-500/20 text-fuchsia-300 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider animate-pulse border border-fuchsia-500/30 hover:bg-fuchsia-500/30 transition-colors"><Download className="w-3 h-3" /> Install App</button>}
+                                <button onClick={logout} className="p-2.5 bg-white/5 border border-white/10 rounded-full text-purple-200 hover:text-white hover:bg-white/10 transition-colors"><User className="w-5 h-5" /></button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-md mx-auto p-5 space-y-6 pt-24 pb-32 relative z-10">
+                        {/* FIX: PASSED onPanic AND showToast */}
+                        {activeTab === 'home' && <HomeScreen user={user} apiCall={apiCall} showToast={showToast} onChangeTab={setActiveTab} onPanic={handlePanic} />}
+                        {activeTab === 'contacts' && <ContactsScreen apiCall={apiCall} showToast={showToast} />}
+                        {activeTab === 'map' && <MapScreen apiCall={apiCall} showToast={showToast} />}
+                        {activeTab === 'chat' && <LegalChatScreen apiCall={apiCall} />}
+                        {activeTab === 'rights' && <RightsScreen onBack={() => setActiveTab('home')} />}
+                        {activeTab === 'protocols' && <ProtocolsScreen onBack={() => setActiveTab('home')} />}
+                        {activeTab === 'helplines' && <HelplinesScreen onBack={() => setActiveTab('home')} />}
+                    </main>
+
+                    <QuickExitButton />
+
+                    <nav className="fixed bottom-6 left-4 right-4 z-50">
+                        <div className="max-w-md mx-auto glass-nav rounded-[2rem] p-2 flex justify-between items-center shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10">
+                            <NavButton icon={Shield} label="Home" active={['home', 'rights', 'protocols', 'helplines'].includes(activeTab)} onClick={() => setActiveTab('home')} />
+                            <NavButton icon={MapPin} label="Route" active={activeTab === 'map'} onClick={() => setActiveTab('map')} />
+                            <NavButton icon={Siren} label="Tribe" active={activeTab === 'contacts'} onClick={() => setActiveTab('contacts')} />
+                            <NavButton icon={MessageSquare} label="AI Legal" active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} />
+                        </div>
+                    </nav>
+                </div>
+            );
+        }
+
+        /* --- SUB SCREENS --- */
+        function HomeScreen({ user, apiCall, showToast, onChangeTab, onPanic }) { // FIX: Added onPanic
+            const [sosActive, setSosActive] = useState(false);
+            const [sirenActive, setSirenActive] = useState(false);
+            const [fakeCallActive, setFakeCallActive] = useState(false);
+            const sirenRef = useRef(null);
+            
+            const mediaRecorderRef = useRef(null);
+            const recordingIntervalRef = useRef(null);
+
+            useEffect(() => { 
+                sirenRef.current = new SirenManager(); 
+                // FIX: Exposed Siren globally
+                window.sirenManager = sirenRef.current;
+                return () => { 
+                    if (sirenRef.current) sirenRef.current.stop(); 
+                    window.sirenManager = null;
+                    stopRecording(); 
+                }; 
+            }, []);
+
+            const startRecording = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorderRef.current = new MediaRecorder(stream);
+                    mediaRecorderRef.current.ondataavailable = async (event) => {
+                        if (event.data.size > 0) {
+                            const formData = new FormData();
+                            formData.append('audio', event.data, 'panic_audio.webm');
+                            try { await apiCall('api/panic/audio', 'POST', formData, true); } catch (e) {}
+                        }
+                    };
+                    mediaRecorderRef.current.start();
+                    recordingIntervalRef.current = setInterval(() => {
+                        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                            mediaRecorderRef.current.stop();
+                            mediaRecorderRef.current.start();
+                        }
+                    }, 10000); 
+                } catch (err) { showToast("Microphone denied. Cannot record.", "error"); }
+            };
+
+            const stopRecording = () => {
+                if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+                if (mediaRecorderRef.current) { mediaRecorderRef.current.stop(); mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop()); }
+            };
+
+            const triggerSOS = async () => { 
+                try { 
+                    // FIX: Use Global Panic (GPS) if available
+                    if(onPanic) {
+                        onPanic();
+                    } else {
+                        await apiCall('api/panic', 'POST'); 
+                    }
+                    setSosActive(true); 
+                    startRecording(); 
+                } catch (err) { } 
+            };
+
+            const resolveSOS = async () => { 
+                try { 
+                    await apiCall('api/panic/resolve', 'POST'); 
+                    setSosActive(false); 
+                    showToast("SOS Resolved."); 
+                    stopRecording(); 
+                    if(window.sirenManager) window.sirenManager.stop();
+                    setSirenActive(false);
+                } catch (err) { } 
+            };
+            
+            const toggleSiren = () => {
+                if (sirenActive) { sirenRef.current.stop(); setSirenActive(false); } 
+                else { sirenRef.current.start(); setSirenActive(true); }
+            };
+
+            const openQuiz = () => { window.location.href = 'quiz.html'; };
+
+            return (
+                <div className="space-y-8 animate-in fade-in zoom-in duration-500">
+                    {fakeCallActive && <FakeCallOverlay onClose={() => setFakeCallActive(false)} />}
+                    
+                    <div className="glass-panel p-8 relative overflow-hidden group rounded-[2.5rem] border-fuchsia-500/20">
+                        <div className="absolute -top-10 -right-10 w-48 h-48 bg-fuchsia-600/20 rounded-full blur-3xl group-hover:bg-fuchsia-500/30 transition-all duration-700"></div>
+                        <div className="relative z-10">
+                            <h2 className="text-3xl font-light mb-2 text-white">Hello, <span className="font-bold text-fuchsia-300">{user.email?.split('@')[0]}</span></h2>
+                            <p className="text-purple-200/60 text-sm font-medium tracking-wide">Status: <span className="text-emerald-400 font-bold tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">SECURE</span></p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex gap-6 justify-center items-center py-2">
+                        <div className="flex flex-col items-center gap-4 relative">
+                            {/* SOS GLOW RINGS */}
+                            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-[3.5rem] border border-fuchsia-500/20 ${sosActive ? 'animate-ping opacity-50' : 'hidden'}`}></div>
+                            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-[3rem] border border-fuchsia-500/30 ${sosActive ? 'animate-ping opacity-70 delay-75' : 'hidden'}`}></div>
+                            
+                            {/* SOS BUTTON */}
+                            <button onClick={sosActive ? resolveSOS : triggerSOS} className={`relative w-48 h-48 rounded-[3rem] flex flex-col items-center justify-center transition-all duration-500 z-10 ${sosActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-[0_0_50px_rgba(16,185,129,0.4)] animate-pulse' : 'bg-gradient-to-br from-[#db2777] to-[#9333ea] shadow-xl animate-heartbeat hover:scale-105 active:scale-95'}`}>
+                                {sosActive ? <><CheckCircle className="w-16 h-16 text-white mb-2" /><span className="text-white font-black text-xl tracking-widest uppercase">SAFE</span></> : <><AlertTriangle className="w-16 h-16 text-white mb-2 drop-shadow-sm" /><span className="text-white font-black text-3xl tracking-[0.2em] drop-shadow-sm">SOS</span></>}
+                            </button>
+                            <span className="text-[10px] text-fuchsia-300 font-bold tracking-[0.2em] uppercase opacity-80">Tap to Alert</span>
+                        </div>
+                        
+                        <div className="flex flex-col items-center gap-3">
+                            <button onClick={toggleSiren} className={`relative w-24 h-24 rounded-[2rem] flex flex-col items-center justify-center transition-all duration-300 shadow-xl border ${sirenActive ? 'bg-orange-500 animate-pulse shadow-[0_0_40px_rgba(249,115,22,0.6)] border-orange-400 text-white' : 'glass-panel hover:bg-white/10 border-white/10 text-orange-400'}`}>
+                                <Megaphone className="w-8 h-8 mb-2" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{sirenActive ? 'STOP' : 'SIREN'}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="text-xs font-bold text-fuchsia-200/50 uppercase tracking-[0.2em] mb-4 ml-2">Quick Actions</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            {[
+                                { id: 'helplines', icon: Phone, label: 'Helplines', sub: 'Emergency', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'hover:border-rose-500/50' },
+                                { id: 'map', icon: MapPin, label: 'Safe Map', sub: 'Navigation', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'hover:border-emerald-500/50' },
+                                { id: 'fakecall', icon: PhoneIncoming, label: 'Fake Call', sub: 'Simulate', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/50', action: () => setFakeCallActive(true) },
+                                { id: 'quiz', icon: Trophy, label: 'Quiz', sub: 'Knowledge', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'hover:border-amber-500/50', action: openQuiz },
+                                { id: 'rights', icon: Scale, label: 'My Rights', sub: 'Legal Info', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'hover:border-indigo-500/50' },
+                                { id: 'protocols', icon: BookOpen, label: 'Guides', sub: 'Safety', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/50' }
+                            ].map((item, i) => (
+                                <button key={i} onClick={item.action || (() => onChangeTab(item.id))} className={`glass-panel p-5 hover:bg-white/10 transition-all duration-300 text-left group border border-white/5 ${item.border} rounded-[2rem] flex flex-col justify-between h-32`}>
+                                    <div className={`${item.bg} p-3 rounded-2xl w-fit group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                                        <item.icon className={`w-6 h-6 ${item.color}`}/>
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-white text-lg leading-none mb-1">{item.label}</div>
+                                        <div className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{item.sub}</div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function RightsScreen({ onBack }) {
+            const [selectedId, setSelectedId] = useState(null);
+            const rights = [
+                { id: 1, title: "Right to Zero FIR", desc: "You can file a First Information Report (FIR) at any police station irrespective of the location of the incident. The police cannot refuse to register it." },
+                { id: 2, title: "No Arrest After Sunset", desc: "Under Section 46 of CrPC, women cannot be arrested after sunset and before sunrise, except in exceptional circumstances with a magistrate's order." },
+                { id: 3, title: "Right to Privacy", desc: "Under Section 228A of IPC, the identity of a rape victim must be kept confidential. Police and media cannot disclose your name or photo." },
+                { id: 4, title: "Right to Free Legal Aid", desc: "Female victims of violence (rape, domestic abuse, etc.) have the right to get free legal assistance from the Legal Services Authority." },
+                { id: 5, title: "Virtual Complaints", desc: "You have the right to file a complaint via email or registered post if you cannot physically visit a police station." }
+            ];
+
+            return (
+                <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                    <div className="flex items-center gap-4 mb-8">
+                        <button onClick={onBack} className="p-3 glass-panel rounded-full hover:bg-white/10 active:scale-90 transition-transform"><ArrowLeft className="w-6 h-6 text-white" /></button>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Your Legal Rights</h2>
+                    </div>
+                    <div className="space-y-4">
+                        {rights.map(right => (
+                            <div key={right.id} className={`glass-panel overflow-hidden transition-all duration-500 rounded-[1.5rem] border ${selectedId === right.id ? 'bg-white/10 border-fuchsia-500/40 shadow-lg shadow-fuchsia-900/20' : 'border-white/5'}`}>
+                                <button onClick={() => setSelectedId(selectedId === right.id ? null : right.id)} className="w-full p-5 flex items-center justify-between text-left">
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-indigo-500/20 p-2.5 rounded-xl text-indigo-300 border border-indigo-500/30"><Scale className="w-5 h-5"/></div>
+                                        <span className="font-bold text-gray-100 text-sm leading-snug">{right.title}</span>
+                                    </div>
+                                    {selectedId === right.id ? <ChevronUp className="w-5 h-5 text-fuchsia-400"/> : <ChevronDown className="w-5 h-5 text-gray-500"/>}
+                                </button>
+                                {selectedId === right.id && <div className="px-5 pb-5 pt-0 text-sm text-purple-100/80 leading-relaxed border-t border-white/5 mt-2 pt-4">{right.desc}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function ProtocolsScreen({ onBack }) {
+            const [selectedId, setSelectedId] = useState(null);
+            const protocols = [
+                { id: 'general', title: 'General Safety', icon: Shield, color: 'text-emerald-400', bg: 'bg-emerald-500/20', steps: ['Stay aware of surroundings', 'Keep emergency contacts ready', 'Trust your instincts', 'Share location with family'] },
+                { id: 'harassment', title: 'Harassment', icon: AlertTriangle, color: 'text-orange-400', bg: 'bg-orange-500/20', steps: ['Move to a crowded area', 'Call 100 or Emergency SOS', 'Do not engage the harasser', 'Record evidence if safe'] },
+                { id: 'medical', title: 'Medical Emergency', icon: CheckCircle, color: 'text-rose-400', bg: 'bg-rose-500/20', steps: ['Check for breathing/pulse', 'Call Ambulance immediately', 'Perform CPR if trained', 'Do not move patient unless necessary'] }
+            ];
+
+            return (
+                <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                    <div className="flex items-center gap-4 mb-8">
+                        <button onClick={onBack} className="p-3 glass-panel rounded-full hover:bg-white/10 active:scale-90 transition-transform"><ArrowLeft className="w-6 h-6 text-white" /></button>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Safety Protocols</h2>
+                    </div>
+                    {protocols.map(p => (
+                        <div key={p.id} className={`glass-panel overflow-hidden transition-all duration-500 rounded-[1.5rem] border ${selectedId === p.id ? 'bg-white/10 border-white/20' : 'border-white/5'}`}>
+                            <button onClick={() => setSelectedId(selectedId === p.id ? null : p.id)} className="w-full p-5 flex items-center justify-between text-left">
+                                <div className="flex items-center gap-4">
+                                    <div className={`${p.bg} p-2.5 rounded-xl ${p.color} border border-white/10 shadow-inner`}><p.icon className="w-5 h-5"/></div>
+                                    <span className="font-bold text-gray-100">{p.title}</span>
+                                </div>
+                                {selectedId === p.id ? <ChevronUp className="w-5 h-5 text-gray-400"/> : <ChevronDown className="w-5 h-5 text-gray-600"/>}
+                            </button>
+                            {selectedId === p.id && (
+                                <div className="px-5 pb-5 pt-0">
+                                    <ul className="space-y-4 mt-2">
+                                        {p.steps.map((step, idx) => (
+                                            <li key={idx} className="flex gap-4 text-sm text-purple-100/80 items-start">
+                                                <span className={`text-[10px] font-black px-2 py-1 rounded-md bg-white/10 text-white border border-white/10 min-w-[24px] text-center`}>{idx + 1}</span>
+                                                <span className="leading-snug pt-0.5">{step}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        function HelplinesScreen({ onBack }) {
+            const helplines = [
+                { name: "National Emergency", number: "112", bg: "bg-rose-500/20", text: "text-rose-300", border: "border-rose-500/40" },
+                { name: "Police", number: "100", bg: "bg-blue-500/20", text: "text-blue-300", border: "border-blue-500/40" },
+                { name: "Women Helpline", number: "1091", bg: "bg-pink-500/20", text: "text-pink-300", border: "border-pink-500/40" },
+                { name: "Ambulance", number: "102", bg: "bg-emerald-500/20", text: "text-emerald-300", border: "border-emerald-500/40" },
+                { name: "Fire Brigade", number: "101", bg: "bg-orange-500/20", text: "text-orange-300", border: "border-orange-500/40" },
+                { name: "Cyber Crime", number: "1930", bg: "bg-indigo-500/20", text: "text-indigo-300", border: "border-indigo-500/40" },
+            ];
+
+            return (
+                <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                    <div className="flex items-center gap-4 mb-8">
+                        <button onClick={onBack} className="p-3 glass-panel rounded-full hover:bg-white/10 active:scale-90 transition-transform"><ArrowLeft className="w-6 h-6 text-white" /></button>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">Emergency Numbers</h2>
+                    </div>
+                    <div className="grid gap-4">
+                        {helplines.map((h, i) => (
+                            <div key={i} className={`glass-panel p-5 flex items-center justify-between border hover:bg-white/10 transition-colors rounded-[1.5rem] ${h.border} shadow-lg`}>
+                                <div className="flex items-center gap-5">
+                                    <div className={`${h.bg} w-12 h-12 rounded-2xl flex items-center justify-center ${h.text} border border-white/10 shadow-inner`}><Phone className="w-6 h-6"/></div>
+                                    <div>
+                                        <h3 className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mb-1">{h.name}</h3>
+                                        <p className="text-2xl font-black text-white tracking-wide font-mono">{h.number}</p>
+                                    </div>
+                                </div>
+                                <a href={`tel:${h.number}`} className="bg-white/5 hover:bg-emerald-500/20 text-gray-400 hover:text-emerald-400 p-3.5 rounded-full transition-all border border-white/10 hover:border-emerald-500/30 hover:scale-110 shadow-lg"><Phone className="w-5 h-5"/></a>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function ContactsScreen({ apiCall, showToast }) {
+            const [contacts, setContacts] = useState([]);
+            const [showAddForm, setShowAddForm] = useState(false);
+            useEffect(() => { loadContacts(); }, []);
+            const loadContacts = async () => { try { const data = await apiCall('api/contacts'); setContacts(data || []); } catch (err) { console.error(err); } };
+            const addContact = async (e) => { e.preventDefault(); const formData = new FormData(e.target); try { await apiCall('api/contacts', 'POST', Object.fromEntries(formData)); showToast("Contact added"); setShowAddForm(false); loadContacts(); } catch (err) { showToast("Failed to add contact", "error"); } };
+            const deleteContact = async (id) => { try { await apiCall(`api/contacts/${id}`, 'DELETE'); setContacts(prev => prev.filter(c => c.contact_id !== id)); showToast("Contact removed"); } catch (err) { showToast("Failed to delete", "error"); } };
+            return (
+                <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                    <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold text-white tracking-tight">My Tribe</h2><button onClick={() => setShowAddForm(!showAddForm)} className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-lg p-3 rounded-xl hover:scale-105 transition-transform">{showAddForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}</button></div>
+                    {showAddForm && <div className="glass-panel p-6 animate-in slide-in-from-top-4 mb-6 rounded-[2rem] border-fuchsia-500/30"><h3 className="font-bold mb-6 text-white text-lg">Add Trusted Contact</h3><form onSubmit={addContact}><Input name="contact_name" label="Name" placeholder="Mom" required /><Input name="contact_phone" label="Phone Number" placeholder="+91..." required /><Input name="relationship_type" label="Relationship" placeholder="Parent/Sibling/Friend" required /><Button type="submit" className="w-full py-4 mt-2">Save to Tribe</Button></form></div>}
+                    <div className="space-y-4">{contacts.length === 0 ? <div className="text-center py-16 text-gray-500 glass-panel rounded-[2rem]"><User className="w-16 h-16 mx-auto mb-4 opacity-20" /><p className="font-medium">No contacts yet.</p></div> : contacts.map((contact) => (<div key={contact.contact_id} className="glass-panel p-5 flex justify-between items-center rounded-[1.5rem] border border-white/5 hover:border-fuchsia-500/30 transition-colors"><div className="flex items-center gap-5"><div className="bg-gradient-to-br from-fuchsia-500 to-purple-600 w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg text-lg">{contact.contact_name[0]}</div><div><h4 className="font-bold text-white text-lg leading-tight">{contact.contact_name}</h4><p className="text-xs text-fuchsia-200/60 font-medium mt-1 uppercase tracking-wide">{contact.relationship_type}</p></div></div><button onClick={() => deleteContact(contact.contact_id)} className="text-gray-500 hover:text-red-400 p-3 rounded-xl hover:bg-red-500/10 transition-all"><Trash2 className="w-5 h-5" /></button></div>))}</div>
+                </div>
+            );
+        }
+
+        function LegalChatScreen({ apiCall }) {
+            const [messages, setMessages] = useState([{ role: 'bot', text: 'Hello! I am your legal AI companion. I\'m here to empower you with knowledge about your rights. How can I assist you today?' }]);
+            const [input, setInput] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const messagesEndRef = useRef(null);
+            useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+            const sendMessage = async (e) => { e.preventDefault(); if (!input.trim()) return; const userMsg = input; setMessages(prev => [...prev, { role: 'user', text: userMsg }]); setInput(''); setIsTyping(true); try { const data = await apiCall('api/chat', 'POST', { question: userMsg }); setMessages(prev => [...prev, { role: 'bot', text: data.answer }]); } catch (err) { setMessages(prev => [...prev, { role: 'bot', text: "I'm having trouble connecting right now, but remember: You are strong." }]); } finally { setIsTyping(false); } };
+            return (
+                <div className="flex flex-col h-[calc(100vh-140px)] animate-in slide-in-from-right duration-300">
+                    <div className="glass-panel p-5 mb-4 flex items-center gap-4 border-b border-white/5 rounded-[2rem]"><div className="p-2.5 bg-gradient-to-tr from-fuchsia-500 to-purple-600 rounded-xl shadow-lg"><MessageSquare className="w-5 h-5 text-white" /></div><div><h2 className="text-lg font-bold text-white tracking-wide">Legal AI</h2><p className="text-[10px] text-fuchsia-200 uppercase tracking-widest font-bold">Powered by Gemini</p></div></div>
+                    <div className="flex-1 overflow-y-auto p-2 space-y-6">{messages.map((msg, i) => (<div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[85%] p-4 rounded-[1.5rem] text-sm leading-relaxed shadow-lg ${msg.role === 'user' ? 'bg-gradient-to-br from-fuchsia-600 to-purple-600 text-white rounded-br-sm' : 'glass-panel text-gray-100 rounded-bl-sm border border-white/10'}`}>{msg.text}</div></div>))}{isTyping && <div className="flex justify-start"><div className="glass-panel p-4 rounded-[1.5rem] rounded-bl-sm flex gap-1.5"><span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce"></span><span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce delay-75"></span><span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-bounce delay-150"></span></div></div>}<div ref={messagesEndRef} /></div>
+                    <form onSubmit={sendMessage} className="p-2 glass-panel rounded-[2rem] mt-4 border border-fuchsia-500/20"><div className="relative"><input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your legal question..." className="w-full pl-6 pr-14 py-4 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none font-medium" /><button type="submit" disabled={!input.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-fuchsia-600 rounded-full text-white disabled:opacity-50 disabled:bg-gray-700 hover:bg-fuchsia-500 transition-all hover:scale-105 shadow-lg"><Send className="w-4 h-4" /></button></div></form>
+                </div>
+            );
+        }
+
+        /* --- FIX: UPDATED MAP SCREEN WITH GEOCODING --- */
+        function MapScreen({ apiCall, showToast }) { // FIX: Added showToast
+            const [source, setSource] = useState('');
+            const [destination, setDestination] = useState('');
+            
+            // 1. References for the Map
+            const mapContainer = React.useRef(null);
+            const mapInstance = React.useRef(null);
+            const polylineRef = React.useRef(null);
+            const [loading, setLoading] = useState(false);
+
+            React.useEffect(() => {
+                // 2. Initialize the Map (Only once!)
+                if (!mapInstance.current && mapContainer.current) {
+                    mapInstance.current = L.map(mapContainer.current).setView([28.6139, 77.2090], 13);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                        attribution: '© OpenStreetMap'
+                    }).addTo(mapInstance.current);
+                    window.mapInstance = mapInstance.current;
+                }
+                return () => {
+                    if (mapInstance.current) {
+                        mapInstance.current.remove();
+                        mapInstance.current = null;
+                    }
+                };
+            }, []);
+
+            const getCoords = async (query) => {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+                const data = await res.json();
+                if (!data || data.length === 0) throw new Error(`Location not found: ${query}`);
+                return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+            };
+
+            const handleGetRoute = async () => {
+                if (!source || !destination) {
+                    if(showToast) showToast("Please enter locations", "error"); 
+                    return;
+                }
+                setLoading(true);
+                try {
+                    // 1. Geocode
+                    const startPos = await getCoords(source);
+                    const endPos = await getCoords(destination);
+
+                    // 2. Call Server with Coordinates (Not IDs)
+                    const data = await apiCall('api/generate-safe-route', 'POST', {
+                        startLat: startPos.lat,
+                        startLon: startPos.lon,
+                        endLat: endPos.lat,
+                        endLon: endPos.lon
+                    });
+
+                    // 3. Draw on Map
+                    if (data.path && mapInstance.current) {
+                        if (polylineRef.current) mapInstance.current.removeLayer(polylineRef.current);
+                        
+                        // Leaflet needs [lat, lng] array
+                        const latlngs = data.path.map(p => [p.lat, p.lon]);
+                        
+                        polylineRef.current = L.polyline(latlngs, {
+                            color: '#d946ef', 
+                            weight: 5, 
+                            opacity: 0.8
+                        }).addTo(mapInstance.current);
+
+                        mapInstance.current.fitBounds(polylineRef.current.getBounds(), { padding: [50, 50] });
+                    }
+                } catch (error) {
+                    if(showToast) showToast(error.message || "Route failed", "error");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex-1 p-4 pb-24 overflow-y-auto animate-in slide-in-from-right duration-300">
+                    <div className="glass-panel rounded-[2rem] p-6 border border-white/10 backdrop-blur-md mb-6">
+                        <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">Safe Route</h2>
+                        
+                        <div ref={mapContainer} className="h-64 w-full rounded-2xl mb-6 overflow-hidden border border-white/20 shadow-inner bg-gray-900 z-0 relative"></div>
+
+                        <div className="space-y-4 mb-6">
+                            <Input placeholder="Start (e.g., Connaught Place)" value={source} onChange={(e) => setSource(e.target.value)} />
+                            <Input placeholder="Destination (e.g., Saket Metro)" value={destination} onChange={(e) => setDestination(e.target.value)} />
+                        </div>
+
+                        <Button onClick={handleGetRoute} disabled={loading} className="w-full shadow-lg shadow-fuchsia-900/20">
+                            {loading ? <><Loader2 className="w-5 h-5 animate-spin"/> Calculating...</> : 'Find Safe Path'}
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+
+        const NavButton = ({ icon: Icon, label, active, onClick }) => (
+            <button onClick={onClick} className={`flex flex-col items-center justify-center w-full py-2 transition-all duration-500 rounded-2xl ${active ? 'text-white bg-white/10 shadow-inner' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}>
+                <Icon className={`w-6 h-6 mb-1 transition-all duration-300 ${active ? 'fill-fuchsia-500/20 drop-shadow-[0_0_10px_rgba(236,72,153,0.6)] stroke-fuchsia-300' : ''}`} />
+                <span className={`text-[10px] font-bold tracking-wide uppercase transition-all duration-300 ${active ? 'scale-105 text-fuchsia-200' : ''}`}>{label}</span>
+            </button>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<RakshaApp />);
+    </script>
+</body>
+</html>
